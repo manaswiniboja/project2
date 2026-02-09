@@ -20,7 +20,12 @@ urlpatterns = [
    
     path('student/<int:student_id>/semester/<int:semester_id>/save/', 
          views.save_semester_marks, name='save_semester_marks'),
-   
+
+    path(
+    "student/<int:student_id>/download-pdf/",
+    views.export_student_pdf,
+    name="export_student_pdf"
+    ),  
 ]
 
 

@@ -1,13 +1,18 @@
 from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.http import HttpResponse
+
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4 
 
 from app2.models import (
     Student, College, Department,
     Semester, Subject, Mark
 )
 
-PASS_MARK = 24   
+PASS_MARK = 24   # Minimum marks to pass
 
 
 # ================= HOME =================
@@ -17,9 +22,7 @@ def home(request):
     students = Student.objects.select_related('college', 'department')
 
     error = None
-
     current_year = date.today().year
-
 
     if request.method == "POST" and "student_name" in request.POST:
         sname = request.POST.get("student_name")
@@ -83,13 +86,14 @@ def student_profile(request, student_id):
     completed_semesters = calculate_completed_semesters(student.joined_year)
     semesters = Semester.objects.all().order_by("year", "sem_name")
 
-    # Existing marks
+    # Map existing marks: subject_id -> marks
     marks_map = {m.subject_id: m.marks for m in Mark.objects.filter(student=student)}
 
     semester_subjects = []
 
+    # CGPA calculation
     total_points = 0
-    subjects_with_marks_count = 0  # <-- for CGPA calculation
+    subjects_with_marks_count = 0
 
     for sem_index, sem in enumerate(semesters, start=1):
 
@@ -100,34 +104,51 @@ def student_profile(request, student_id):
 
         subjects_with_marks = []
 
+        # Semester GPA calculation
+        sem_total_points = 0
+        sem_total_credits = 0
+
         for sub in subjects:
             marks = marks_map.get(sub.subject_id)
             earned_credits = 0
+            gp = 0
 
             if marks is not None and sem_index <= completed_semesters:
-                # Earned credits (still depends on PASS_MARK)
-                if marks >= PASS_MARK:
-                    earned_credits = sub.credits
-
-                # Grade points for CGPA (all subjects counted)
                 gp = get_grade_point(marks)
+
+                # GPA calculation (credit weighted)
+                sem_total_points += gp * sub.credits
+                sem_total_credits += sub.credits
+
+                # CGPA calculation
                 total_points += gp
                 subjects_with_marks_count += 1
+
+                # Earned credits only if pass
+                if marks >= PASS_MARK:
+                    earned_credits = sub.credits
 
             subjects_with_marks.append({
                 "subject": sub,
                 "marks": marks if sem_index <= completed_semesters else None,
-                "earned_credits": earned_credits
+                "earned_credits": earned_credits,
+                "grade_point": gp
             })
+
+        semester_gpa = round(
+            sem_total_points / sem_total_credits, 2
+        ) if sem_total_credits else None
 
         semester_subjects.append({
             "semester": sem,
             "subjects": subjects_with_marks,
-            "is_completed": sem_index <= completed_semesters
+            "is_completed": sem_index <= completed_semesters,
+            "semester_gpa": semester_gpa
         })
 
-    # CGPA purely based on marks
-    cgpa = round(total_points / subjects_with_marks_count, 2) if subjects_with_marks_count else 0.00
+    cgpa = round(
+        total_points / subjects_with_marks_count, 2
+    ) if subjects_with_marks_count else 0.00
 
     return render(request, "app/student_profile.html", {
         "student": student,
@@ -135,10 +156,13 @@ def student_profile(request, student_id):
         "departments": departments,
         "semester_subjects": semester_subjects,
         "completed_semesters": completed_semesters,
-        "total_credits": sum(sub['earned_credits'] for sem in semester_subjects for sub in sem['subjects']),
+        "total_credits": sum(
+            sub['earned_credits']
+            for sem in semester_subjects
+            for sub in sem['subjects']
+        ),
         "cgpa": cgpa
     })
-
 
 
 # ================= SAVE SEMESTER MARKS =================
@@ -168,6 +192,129 @@ def save_semester_marks(request, student_id, semester_id):
         )
 
     return redirect("student_profile", student_id=student.sid)
+
+
+# ================= PDF EXPORT (SEMESTER WISE WITH GPA) =================
+def export_student_pdf(request, student_id):
+    student = get_object_or_404(Student, sid=student_id)
+
+    semesters = Semester.objects.all().order_by("year", "sem_name")
+    marks = Mark.objects.filter(student=student).select_related("subject")
+    marks_map = {m.subject_id: m.marks for m in marks}
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{student.sname}_Academic_Report.pdf"'
+    )
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ---------- HEADER ----------
+    elements.append(Paragraph("<b>Student Academic Report</b>", styles["Title"]))
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph(f"<b>Name:</b> {student.sname}", styles["Normal"]))
+    elements.append(Paragraph(
+        f"<b>College:</b> {student.college.college_name}", styles["Normal"]
+    ))
+    elements.append(Paragraph(
+        f"<b>Department:</b> {student.department.dept_name}", styles["Normal"]
+    ))
+    elements.append(Spacer(1, 20))
+
+    total_credits = 0
+
+    # ---------- SEMESTER WISE ----------
+    for sem in semesters:
+        subjects = Subject.objects.filter(
+            department=student.department,
+            semester=sem
+        )
+
+        if not subjects.exists():
+            continue
+
+        elements.append(Paragraph(
+            f"<b>{sem.sem_name} (Year {sem.year})</b>",
+            styles["Heading2"]
+        ))
+        elements.append(Spacer(1, 8))
+
+        table_data = [
+            ["Subject", "Marks", "Credits Earned", "Result"]
+        ]
+
+        sem_credits = 0
+        sem_total_points = 0
+        sem_total_credits = 0
+
+        for sub in subjects:
+            marks = marks_map.get(sub.subject_id)
+
+            if marks is None:
+                continue
+
+            gp = get_grade_point(marks)
+
+            if marks >= PASS_MARK:
+                earned = sub.credits
+                result = "PASS"
+            else:
+                earned = 0
+                result = "FAIL"
+
+            sem_credits += earned
+            total_credits += earned
+
+            # GPA calculation (credit-weighted)
+            sem_total_points += gp * sub.credits
+            sem_total_credits += sub.credits
+
+            table_data.append([
+                sub.subject_name,
+                str(marks),
+                str(earned),
+                result
+            ])
+
+        table = Table(table_data, colWidths=[200, 80, 100, 80])
+        elements.append(table)
+        elements.append(Spacer(1, 6))
+
+        semester_gpa = round(
+            sem_total_points / sem_total_credits, 2
+        ) if sem_total_credits else 0.00
+
+        elements.append(
+            Paragraph(
+                f"<b>Semester Credits Earned:</b> {sem_credits}",
+                styles["Normal"]
+            )
+        )
+        elements.append(
+            Paragraph(
+                f"<b>Semester GPA:</b> {semester_gpa}",
+                styles["Normal"]
+            )
+        )
+        elements.append(Spacer(1, 18))
+
+    # ---------- FINAL SUMMARY ----------
+    final_result = "PASS" if total_credits >= 35 else "FAIL"
+
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("<b>Final Summary</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph(f"<b>Total Credits Earned:</b> {total_credits}", styles["Normal"])
+    )
+    elements.append(
+        Paragraph(f"<b>Final Result:</b> {final_result}", styles["Normal"])
+    )
+
+    doc.build(elements)
+    return response
 
 
 # ================= STUDENT CRUD =================

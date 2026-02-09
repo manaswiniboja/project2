@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -119,6 +119,9 @@ USE_TZ = True
 # STATIC FILES
 STATIC_URL = '/static/'                
 STATICFILES_DIRS = [BASE_DIR / 'static'] 
+# Folder where collectstatic will put all files
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 
 # MEDIA FILES (for uploaded images)
 MEDIA_URL = '/media/'
