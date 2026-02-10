@@ -55,7 +55,6 @@ def home(request):
         "current_year": current_year
     })
 
-
 # ================= COMPLETED SEMESTERS =================
 def calculate_completed_semesters(joined_year):
     today = date.today()
@@ -274,7 +273,6 @@ def export_student_pdf(request, student_id):
         elements.append(Paragraph(f"<b>Final Result:</b> <font color='{result_color}'>{final_result}</font>", styles["Normal"]))
     else:
         elements.append(Paragraph("<b>Final Result:</b> RESULT PENDING", styles["Normal"]))
-
     elements.append(Paragraph(f"<b>CGPA:</b> {cgpa if cgpa else 'N/A'}", styles["Normal"]))
 
     doc.build(elements)
