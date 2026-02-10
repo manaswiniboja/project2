@@ -194,14 +194,17 @@
         <strong>Total Credits Earned:</strong> {{ total_credits }}
     </p>
 
-    <p>
-        <strong>Result:</strong>
-        {% if total_credits >= 35 %}
-            <span class="badge bg-success">PASS</span>
-        {% else %}
-            <span class="badge bg-danger">FAIL</span>
-        {% endif %}
-    </p>
+    <!-- ✅ RESULT LABEL + VALUE ONLY IF ALL SEMESTERS ARE COMPLETED -->
+    {% if completed_semesters == semester_subjects|length %}
+        <p>
+            <strong>Result:</strong>
+            {% if total_credits >= 35 %}
+                <span class="badge bg-success">PASS</span>
+            {% else %}
+                <span class="badge bg-danger">FAIL</span>
+            {% endif %}
+        </p>
+    {% endif %}
 
     <p>
         <strong>CGPA:</strong>
@@ -213,8 +216,6 @@
     </p>
 </div>
 
-        </div>
-    </div>
 
     <!-- Edit Student Modal -->
     <div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
