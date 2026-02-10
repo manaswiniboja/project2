@@ -161,16 +161,26 @@ def save_semester_marks(request, student_id, semester_id):
     if request.method == "POST":
         subjects = Subject.objects.filter(department=student.department, semester=semester)
 
+        # Collect all marks from the POST request
+        marks_to_save = {}
         for sub in subjects:
             value = request.POST.get(f"mark_{sub.subject_id}")
-            if value not in (None, ""):
-                mark_obj, _ = Mark.objects.get_or_create(student=student, subject=sub)
-                mark_obj.marks = int(value)
-                mark_obj.save()
+            if value is None or value.strip() == "":
+                # If any subject is empty, do not save
+                messages.error(request, f"Please enter marks for all subjects in {semester.sem_name} before saving.")
+                return redirect("student_profile", student_id=student.sid)
+            marks_to_save[sub] = int(value)
+
+        # All subjects have marks, now save
+        for sub, mark_value in marks_to_save.items():
+            mark_obj, _ = Mark.objects.get_or_create(student=student, subject=sub)
+            mark_obj.marks = mark_value
+            mark_obj.save()
 
         messages.success(request, f"Marks for {semester.sem_name} saved successfully!")
 
     return redirect("student_profile", student_id=student.sid)
+
 
 
 # ================= PDF EXPORT =================
