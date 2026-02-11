@@ -10,23 +10,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from logging import config
 import os
 from pathlib import Path
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "dev-secret-key"
-)
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "127.0.0.1,localhost"
-).split(",")
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config('SECRET_KEY')
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config('DEBUG', default=False, cast=bool)
 
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -42,7 +42,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -80,21 +79,17 @@ WSGI_APPLICATION = 'project2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-
-        # Railway (env vars)
-        'NAME': os.environ.get('MYSQL_DATABASE', 'student_db'),
-        'USER': os.environ.get('MYSQL_USER', 'root'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'root'),
-        'HOST': os.environ.get('MYSQL_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('MYSQL_PORT', '3306'),
-
+        'NAME': 'student_db',        
+        'USER': 'root',             
+        'PASSWORD': 'root',  
+        'HOST': 'localhost',         
+        'PORT': '3306',              
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         },
     }
 }
-
 
 
 
@@ -134,6 +129,7 @@ USE_TZ = True
 
 # STATIC FILES
 STATIC_URL = '/static/'                
+STATICFILES_DIRS = [BASE_DIR / 'static'] 
 # Folder where collectstatic will put all files
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
