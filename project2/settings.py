@@ -10,19 +10,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+"""
+Django settings for project2 project.
+"""
+
 import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# Load environment variables from .env (for local development)
+# Load .env if present
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = os.environ.get(
-    'SECRET_KEY', 
+    'SECRET_KEY',
     'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6'
 )
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -74,17 +78,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project2.wsgi.application'
 
+# ----------------------
 # DATABASE CONFIGURATION
-# Use Railway DATABASE_URL if present, else fallback to local MySQL
+# ----------------------
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Railway / production environment
+    # Production (Railway)
+    config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+
+    # Fix SSL for mysqlclient
+    options = config.get('OPTIONS', {})
+    if 'sslmode' in options:
+        sslmode = options.pop('sslmode')
+        options['ssl'] = {'ssl_mode': sslmode.upper()}
+    config['OPTIONS'] = options
+
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        'default': config
     }
 else:
-    # Local development environment
+    # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -100,29 +114,39 @@ else:
         }
     }
 
-# Password validation
+# ----------------------
+# PASSWORD VALIDATION
+# ----------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Internationalization
+# ----------------------
+# INTERNATIONALIZATION
+# ----------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ----------------------
+# STATIC FILES
+# ----------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# ----------------------
+# MEDIA FILES
+# ----------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
+# ----------------------
+# DEFAULT PK FIELD
+# ----------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
