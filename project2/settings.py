@@ -27,7 +27,13 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key-for-now")
 DEBUG = False
 
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "project2-production-0075.up.railway.app",
+    ".up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
+
 
 
 
