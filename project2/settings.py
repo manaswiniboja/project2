@@ -12,17 +12,24 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-import dj_database_url  
+import dj_database_url
+from dotenv import load_dotenv
+
+# Load environment variables from .env (for local development)
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6')
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY', 
+    'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6'
+)
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
-    '127.0.0.1', 
-    'localhost', 
+    '127.0.0.1',
+    'localhost',
     'project2-production-a6e9.up.railway.app'
 ]
 
@@ -68,36 +75,37 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project2.wsgi.application'
 
 # DATABASE CONFIGURATION
-# Use Railway environment variables if available, else fallback to local MySQL
-DATABASES = {}
-if os.environ.get("RAILWAY_ENV"):  # Railway sets this automatically
-    DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'))
-else:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', 'student_db'),
-        'USER': os.environ.get('MYSQLUSER', 'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', 'root'),
-        'HOST': os.environ.get('MYSQLHOST', '127.0.0.1'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
+# Use Railway DATABASE_URL if present, else fallback to local MySQL
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-         "default": dj_database_url.parse(
-        os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
-    )
-        },
+if DATABASE_URL:
+    # Railway / production environment
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+else:
+    # Local development environment
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQLDATABASE', 'student_db'),
+            'USER': os.environ.get('MYSQLUSER', 'root'),
+            'PASSWORD': os.environ.get('MYSQLPASSWORD', 'root'),
+            'HOST': os.environ.get('MYSQLHOST', '127.0.0.1'),
+            'PORT': os.environ.get('MYSQLPORT', '3306'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            },
+        }
     }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internationalization
