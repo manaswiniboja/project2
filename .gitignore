@@ -1,7 +1,5 @@
 # Django
 db.sqlite3
-media/
-staticfiles/
 
 # Python
 __pycache__/
