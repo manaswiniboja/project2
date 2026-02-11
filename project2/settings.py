@@ -31,11 +31,7 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = 'False'
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    'project2-production-a6e9.up.railway.app'
-]
+ALLOWED_HOSTS = ['*']
 
 # Applications
 INSTALLED_APPS = [
