@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-
 import os
 from pathlib import Path
 
@@ -22,19 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key-for-now")
+SECRET_KEY = 'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6'
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-
-ALLOWED_HOSTS = [
-    "project2-production-0075.up.railway.app",
-    ".up.railway.app",
-    "localhost",
-    "127.0.0.1",
-]
-
-
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -50,6 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -87,17 +80,17 @@ WSGI_APPLICATION = 'project2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE'),
-        'USER': os.environ.get('MYSQLUSER'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD'),
-        'HOST': os.environ.get('MYSQLHOST'),
-        'PORT': os.environ.get('MYSQLPORT'),
+        'NAME': 'student_db',        
+        'USER': 'root',             
+        'PASSWORD': 'root',  
+        'HOST': 'localhost',         
+        'PORT': '3306',              
         'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         },
     }
 }
-
 
 
 
