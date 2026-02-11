@@ -100,12 +100,12 @@ else:
     # Local development MySQL
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('MYSQLDATABASE', 'student_db'),
-            'USER': os.environ.get('MYSQLUSER', 'root'),
-            'PASSWORD': os.environ.get('MYSQLPASSWORD', 'root'),
-            'HOST': os.environ.get('MYSQLHOST', '127.0.0.1'),
-            'PORT': os.environ.get('MYSQLPORT', '3306'),
+           'ENGINE': 'django.db.backends.mysql',
+           'NAME': os.environ.get('DB_NAME', 'student_db'),
+           'USER': os.environ.get('DB_USER', 'root'),
+           'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+           'HOST': os.environ.get('DB_HOST', 'project2-production-a6e9.up.railway.app'),
+           'PORT': os.environ.get('DB_PORT', '3306'),
             'OPTIONS': {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
                 'charset': 'utf8mb4',
