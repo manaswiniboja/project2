@@ -19,7 +19,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# Load .env if present
+# Load .env for local development
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6'
 )
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = 'False'
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -78,19 +78,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project2.wsgi.application'
 
-# ----------------------
-# DATABASE CONFIGURATION
-# ----------------------
+# ---------------- DATABASE CONFIGURATION ----------------
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Production (Railway)
+    # Production: Railway MySQL/PostgreSQL
     config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 
-    # Fix SSL for mysqlclient
+    # Fix sslmode for MySQL
     options = config.get('OPTIONS', {})
     if 'sslmode' in options:
         sslmode = options.pop('sslmode')
+        # mysqlclient expects ssl={'ssl_mode': 'REQUIRED'}
         options['ssl'] = {'ssl_mode': sslmode.upper()}
     config['OPTIONS'] = options
 
@@ -98,7 +97,7 @@ if DATABASE_URL:
         'default': config
     }
 else:
-    # Local development
+    # Local development MySQL
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -114,39 +113,28 @@ else:
         }
     }
 
-# ----------------------
-# PASSWORD VALIDATION
-# ----------------------
+# ---------------- PASSWORD VALIDATION ----------------
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ----------------------
-# INTERNATIONALIZATION
-# ----------------------
+# ---------------- INTERNATIONALIZATION ----------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ----------------------
-# STATIC FILES
-# ----------------------
+# ---------------- STATIC & MEDIA ----------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ----------------------
-# MEDIA FILES
-# ----------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ----------------------
-# DEFAULT PK FIELD
-# ----------------------
+# ---------------- DEFAULT AUTO FIELD ----------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
