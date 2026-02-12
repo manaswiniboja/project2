@@ -1,26 +1,22 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
 import os
 import sys
-import os
-if os.environ.get("RUN_MIGRATIONS"):
-    os.system("python manage.py migrate")
-
-
 
 def main():
-    """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project2.settings')
+
+    # AUTO-RUN MIGRATIONS ON RAILWAY
+    if os.environ.get("RUN_MIGRATIONS") == "1":
+        import django
+        django.setup()
+        from django.core.management import call_command
+        call_command("migrate", interactive=False)
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
+        raise
     execute_from_command_line(sys.argv)
-
 
 if __name__ == '__main__':
     main()
