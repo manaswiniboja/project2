@@ -2,6 +2,10 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import os
+if os.environ.get("RUN_MIGRATIONS"):
+    os.system("python manage.py migrate")
+
 
 
 def main():
