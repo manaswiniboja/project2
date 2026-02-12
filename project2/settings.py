@@ -79,6 +79,11 @@ else:
         }
     }
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://project2-production-a6e9.up.railway.app"
+]
+
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
