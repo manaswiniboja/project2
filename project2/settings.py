@@ -89,10 +89,10 @@ print("MYSQLPORT:", os.environ.get("MYSQLPORT"))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ.get("MYSQLDATABASE", "student_db"),
+        "NAME": os.environ.get("MYSQLDATABASE", "railway"),
         "USER": os.environ.get("MYSQLUSER", "root"),
-        "PASSWORD": os.environ.get("MYSQLPASSWORD", "root"),
-        "HOST": os.environ.get("MYSQLHOST", "127.0.0.1"),
+        "PASSWORD": os.environ.get("MYSQLPASSWORD", "RKiMXcYaIHmwkFUmDgITJAGvqGuknEfK"),
+        "HOST": os.environ.get("MYSQLHOST", "mysql.railway.internal"),
         "PORT": os.environ.get("MYSQLPORT", "3306"),
     }
 }
