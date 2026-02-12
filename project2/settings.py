@@ -98,7 +98,9 @@ DATABASES = {
         conn_max_age=600,
     )
 }
-
+# 2. Crucial: Tell Django to use PyMySQL (Railway default)
+import pymysql
+pymysql.install_as_MySQLdb()
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
