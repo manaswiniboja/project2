@@ -17,7 +17,7 @@ pymysql.install_as_MySQLdb()
 # SECURITY
 # --------------------------------------------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
