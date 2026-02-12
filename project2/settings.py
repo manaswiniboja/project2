@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-cwqbk^n)qfj_tjo0aoq17x3mhfqh^^t2nrmlwt4#je3l26so@6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -73,25 +73,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project2.wsgi.application'
 
+print("MYSQLHOST =", os.environ.get("MYSQLHOST"))
+
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', 'student_db'),
-        'USER': os.environ.get('MYSQLUSER', 'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', 'root'),
-        'HOST': os.environ.get('MYSQLHOST', '127.0.0.1'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQLDATABASE", "student_db"),
+        "USER": os.environ.get("MYSQLUSER", "root"),
+        "PASSWORD": os.environ.get("MYSQLPASSWORD", "root"),
+        "HOST": os.environ.get("MYSQLHOST", "127.0.0.1"),
+        "PORT": os.environ.get("MYSQLPORT", "3306"),
     }
 }
-
 
 
 # Password validation
