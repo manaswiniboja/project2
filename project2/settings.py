@@ -93,7 +93,7 @@ DATABASES = {
         "USER": "railway_user",
         "PASSWORD": "RKiMXcYaIHmwkFUmDgITJAGvqGuknEfK",
         "HOST": "turntable.proxy.rlwy.net",
-        "PORT": "3306",
+        "PORT": "31053",
     }
 }
 
