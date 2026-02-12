@@ -90,7 +90,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "railway",
-        "USER": "root",
+        "USER": "railway_user",
         "PASSWORD": "RKiMXcYaIHmwkFUmDgITJAGvqGuknEfK",
         "HOST": "turntable.proxy.rlwy.net",
         "PORT": "31053",
