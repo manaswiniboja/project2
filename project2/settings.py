@@ -73,7 +73,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project2.wsgi.application'
 
-print("MYSQLHOST =", os.environ.get("MYSQLHOST"))
+
+print("MYSQLHOST:", os.environ.get("MYSQLHOST"))
+print("MYSQLDATABASE:", os.environ.get("MYSQLDATABASE"))
+print("MYSQLUSER:", os.environ.get("MYSQLUSER"))
+print("MYSQLPASSWORD:", os.environ.get("MYSQLPASSWORD"))
+print("MYSQLPORT:", os.environ.get("MYSQLPORT"))
+
 
 
 
