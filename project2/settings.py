@@ -11,15 +11,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from pathlib import Path
-import dj_database_url  
-
+from pathlib import Path  
+import dj_database_url
+import pymysql
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
-DEBUG = True
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+DEBUG=False
+ALLOWED_HOSTS = ["*"]
+
 
 # Applications
 INSTALLED_APPS = [
@@ -64,6 +65,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project2.wsgi.application'
+
+pymysql.install_as_MySQLdb()
+
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+    )
+}
 
 # DATABASE: Railway MySQL or fallback to SQLite for local
 DATABASE_URL = os.environ.get('DATABASE_URL')
