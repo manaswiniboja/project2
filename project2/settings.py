@@ -87,11 +87,18 @@ TEMPLATES = [
 # --------------------------------------------------
 
 DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ["MYSQLDATABASE"],
+        "USER": os.environ["MYSQLUSER"],
+        "PASSWORD": os.environ["MYSQLPASSWORD"],
+        "HOST": os.environ["MYSQLHOST"],
+        "PORT": os.environ["MYSQLPORT"],
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
+}
 
 # --------------------------------------------------
 # PASSWORD VALIDATION
