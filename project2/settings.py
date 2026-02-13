@@ -90,13 +90,18 @@ print("MYSQLPORT:", os.environ.get("MYSQLPORT"))
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # ... other settings ...
-
 DATABASES = {
-    'default': dj_database_url.config(
-        # This looks for the DATABASE_URL environment variable
-        default=os.environ.get('MYSQL_URL'),
-        conn_max_age=600,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('MYSQLDATABASE', 'railway_db'),
+        'USER': os.environ.get('MYSQLUSER', 'railway_user'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD', 'your_password'),
+        'HOST': os.environ.get('MYSQLHOST', 'containers-us-west-123.railway.app'),
+        'PORT': os.environ.get('MYSQLPORT', '3306'),
+        'OPTIONS': {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
 }
 # 2. Crucial: Tell Django to use PyMySQL (Railway default)
 import pymysql
