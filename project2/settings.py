@@ -29,6 +29,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://*.ngrok-free.app",
+    "http://*.ngrok.io",
+]
+
 
 # Application definition
 
@@ -45,7 +50,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -53,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'project2.urls'
@@ -75,14 +80,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project2.wsgi.application'
 
 
-print("MYSQLHOST:", os.environ.get("MYSQLHOST"))
-print("MYSQLDATABASE:", os.environ.get("MYSQLDATABASE"))
-print("MYSQLUSER:", os.environ.get("MYSQLUSER"))
-print("MYSQLPASSWORD:", os.environ.get("MYSQLPASSWORD"))
-print("MYSQLPORT:", os.environ.get("MYSQLPORT"))
-
-
-
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -91,19 +88,16 @@ print("MYSQLPORT:", os.environ.get("MYSQLPORT"))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQLDATABASE', 'railway_db'),
-        'USER': os.environ.get('MYSQLUSER', 'railway_user'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', 'your_password'),
-        'HOST': os.environ.get('MYSQLHOST', 'containers-us-west-123.railway.app'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
+        'NAME': 'student_db',
+        'USER': 'root',               
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',           
+        'PORT': '3306',
         'OPTIONS': {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
-# 2. Crucial: Tell Django to use PyMySQL (Railway default)
-import pymysql
-pymysql.install_as_MySQLdb()
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
