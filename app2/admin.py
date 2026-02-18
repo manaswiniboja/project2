@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import College, Department, Semester, Student, Subject
+from .models import StudentID, FacultyID
 
 # College Admin
 @admin.register(College)
@@ -35,3 +36,15 @@ class SubjectAdmin(admin.ModelAdmin):
     list_filter = ('department', 'semester')
     search_fields = ('subject_name',)
     autocomplete_fields = ('department', 'semester')
+
+@admin.register(FacultyID)
+class FacultyIDAdmin(admin.ModelAdmin):
+    list_display = ('fid', 'created_at')
+
+@admin.register(StudentID)
+class StudentIDAdmin(admin.ModelAdmin):
+    list_display = ('sid', 'created_at')
+
+
+admin.site.register(FacultyID)
+admin.site.register(StudentID)

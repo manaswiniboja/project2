@@ -59,3 +59,17 @@ class Mark(models.Model):
 
     def __str__(self):
         return f"{self.student.sname} - {self.subject.subject_name}"
+
+class FacultyID(models.Model):
+    fid = models.CharField(max_length=10, unique=True)  # Faculty ID
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.fid
+
+class StudentID(models.Model):
+    sid = models.CharField(max_length=10, unique=True)  # Student ID
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.sid
