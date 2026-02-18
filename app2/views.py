@@ -394,7 +394,7 @@ def student_register(request):
         college_id = request.POST.get("college")
         dept_id = request.POST.get("department")
         joined_year = int(request.POST.get("joined_year"))
-        
+
         if User.objects.filter(username=username).exists():
             return render(request, "app/student_register.html", {
                 "error": "Username already exists",
@@ -441,4 +441,8 @@ def user_login(request):
                 return redirect("student_profile", student_id=student.sid)
 
     return render(request, "app/login.html")
+
+def user_logout(request):
+    logout(request)
+    return redirect("login")
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Student Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input,
+        select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Student Registration</h2>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="username" placeholder="Username" required autocomplete="off">
+            <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
+
+
+            <input type="text" name="student_name" placeholder="Full Name" required>
+            <input type="number" name="student_age" placeholder="Age" min="16" required>
+
+            <label for="college">College:</label>
+            <select name="college" required>
+                <option value="">Select College</option>
+                {% for college in colleges %}
+                <option value="{{ college.cid }}">{{ college.college_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="department">Department:</label>
+            <select name="department" required>
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                <option value="{{ dept.did }}">{{ dept.dept_name }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="number" name="joined_year" placeholder="Joined Year" min="2000" max="{{ current_year }}"
+                required>
+
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+
+</html>

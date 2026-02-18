@@ -154,11 +154,13 @@
         <div class="card-box d-flex justify-content-between align-items-center">
             {{ college.college_name }}
             <div class="card-actions">
+                  {% if user.groups.filter(name="Faculty").exists %}
                 <!-- Edit College -->
                 <i class="bi bi-pencil-square" data-bs-toggle="modal" data-bs-target="#editCollegeModal{{ college.cid }}"></i>
 
                 <!-- Delete College -->
                 <i class="bi bi-trash-fill text-danger" data-bs-toggle="modal" data-bs-target="#deleteCollegeModal{{ college.cid }}"></i>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -217,11 +219,13 @@
                 <div class="card-box d-flex justify-content-between align-items-center">
                     {{ dept.dept_name }}
                     <div class="card-actions">
+                          {% if user.groups.filter(name="Faculty").exists %}
                         <!-- Edit Department -->
                         <i class="bi bi-pencil-square" data-bs-toggle="modal" data-bs-target="#editDeptModal{{ dept.did }}"></i>
 
                         <!-- Delete Department -->
                         <i class="bi bi-trash-fill text-danger" data-bs-toggle="modal" data-bs-target="#deleteDeptModal{{ dept.did }}"></i>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -273,11 +277,13 @@
         </div>
 
         <!-- Add Student Button -->
+         {% if user.groups.filter(name="Faculty").exists %}
         <div class="text-center mb-4">
             <button class="btn btn-success px-4 py-2" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                 Add Student
             </button>
         </div>
+        {% endif %}
 
         <!-- Students -->
         <h4 class="text-info mb-3">Students</h4>
@@ -298,6 +304,7 @@
             </div>
 
             <!-- Edit Student Modal -->
+             {% if user.groups.filter(name="Faculty").exists %}
             <div class="modal fade" id="editStudentModal{{ s.sid }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content rounded-4">
@@ -379,6 +386,7 @@
 
             {% endfor %}
         </div>
+        {% endif %}
 
         <!-- Add Student Modal -->
         <div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
