@@ -46,5 +46,4 @@ class StudentIDAdmin(admin.ModelAdmin):
     list_display = ('sid', 'created_at')
 
 
-admin.site.register(FacultyID)
-admin.site.register(StudentID)
+
