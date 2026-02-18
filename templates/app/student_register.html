@@ -1,101 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Student Registration</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        input,
-        select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            padding: 10px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #45a049;
-        }
-
-        .error {
-            color: red;
-            text-align: center;
-        }
-    </style>
+    <title>Student Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
-<body>
-    <div class="container">
-        <h2>Student Registration</h2>
+<body class="bg-light">
+<div class="container d-flex justify-content-center align-items-center" style="min-height:100vh;">
+    <div class="card p-4 shadow" style="width: 350px;">
+        <h3 class="text-center mb-4 text-success">Student Register</h3>
 
         {% if error %}
-        <div class="error">{{ error }}</div>
+            <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
 
         <form method="POST">
             {% csrf_token %}
-
-            <input type="text" name="username" placeholder="Username" required autocomplete="off">
-            <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
-
-
-            <input type="text" name="student_name" placeholder="Full Name" required>
-            <input type="number" name="student_age" placeholder="Age" min="16" required>
-
-            <label for="college">College:</label>
-            <select name="college" required>
-                <option value="">Select College</option>
-                {% for college in colleges %}
-                <option value="{{ college.cid }}">{{ college.college_name }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="department">Department:</label>
-            <select name="department" required>
-                <option value="">Select Department</option>
-                {% for dept in departments %}
-                <option value="{{ dept.did }}">{{ dept.dept_name }}</option>
-                {% endfor %}
-            </select>
-
-            <input type="number" name="joined_year" placeholder="Joined Year" min="2000" max="{{ current_year }}"
-                required>
-
-            <button type="submit">Register</button>
+            <div class="mb-3">
+                <label class="form-label">Student_ID</label>
+                <input type="text" name="student_id" class="form-control" required autocomplete="off">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+               <input type="password" name="password" class="form-control" required autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-success w-100">Create Account</button>
         </form>
-    </div>
-</body>
 
+        <div class="mt-3 text-center">
+            <a href="{% url 'login' %}">Back to Login</a>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelector('form').addEventListener('submit', function() {
+    setTimeout(() => this.reset(), 10);  // Reset after submit
+});
+</script>
+
+</body>
 </html>

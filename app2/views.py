@@ -371,8 +371,8 @@ def faculty_register(request):
         if User.objects.filter(username=username).exists():
             return render(request, "app/faculty_register.html", {"error": "Username already exists"})
 
+        # Create user
         user = User.objects.create_user(username=username, password=password)
-
         faculty_group = Group.objects.get(name="Faculty")
         user.groups.add(faculty_group)
 
@@ -383,45 +383,24 @@ def faculty_register(request):
 def student_register(request):
     create_groups()
 
-    colleges = College.objects.all()
-    departments = Department.objects.all()
-
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        sname = request.POST.get("student_name")
-        sage = int(request.POST.get("student_age"))
-        college_id = request.POST.get("college")
-        dept_id = request.POST.get("department")
-        joined_year = int(request.POST.get("joined_year"))
 
         if User.objects.filter(username=username).exists():
-            return render(request, "app/student_register.html", {
-                "error": "Username already exists",
-                "colleges": colleges,
-                "departments": departments
-            })
+            return render(request, "app/student_register.html", {"error": "Username already exists"})
 
+        # Create user
         user = User.objects.create_user(username=username, password=password)
-
         student_group = Group.objects.get(name="Student")
         user.groups.add(student_group)
 
-        Student.objects.create(
-            user=user,
-            sname=sname,
-            sage=sage,
-            college=College.objects.get(cid=college_id),
-            department=Department.objects.get(did=dept_id),
-            joined_year=joined_year
-        )
+        # Create Student object (other fields optional or default)
+        Student.objects.create(user=user, sname=username)  # Only username as name
 
         return redirect("login")
 
-    return render(request, "app/student_register.html", {
-        "colleges": colleges,
-        "departments": departments
-    })
+    return render(request, "app/student_register.html")
 
 def user_login(request):
     if request.method == "POST":
