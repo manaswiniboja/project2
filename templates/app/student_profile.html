@@ -118,35 +118,32 @@
                             <div class="col-4">{{ item.subject.subject_name }}</div>
                             <div class="col-1">{{ item.subject.credits }}</div>
                             <div class="col-2">
-    <input type="number"
-           name="mark_{{ item.subject.subject_id }}"
-           min="0"
-           max="75"
-           class="form-control"
-           value="{{ item.marks|default:'' }}">
+    {% if sem_info.is_completed %}
+        <input type="number" name="mark_{{ item.subject.subject_id }}" min="0" max="75"
+            class="form-control" value="{{ item.marks|default:'' }}">
+    {% endif %}
 </div>
 
-                           <div class="col-2">
-    {% if sem_info.is_completed %}
-        {% if item.marks is not None %}
-            {{ item.marks }}
-            {% with total_marks=total_marks|add:item.marks %}{% endwith %}
-        {% else %}
-            <span class="text-tba">TBA</span>
-        {% endif %}
-    {% else %}
+                            <div class="col-2">
+    {% if sem_info.is_completed and item.marks is not None %}
+        {{ item.marks }}
+        {% with total_marks=total_marks|add:item.marks %}{% endwith %}
+    {% elif not sem_info.is_completed %}
         <span class="text-tba">TBA</span>
     {% endif %}
 </div>
 
-                           <div class="col-2">
-    {% if sem_info.is_completed and item.marks is not None %}
-        <strong>{{ item.earned_credits }}</strong> / {{ item.subject.credits }}
-    {% else %}
-        <span class="text-tba">– / {{ item.subject.credits }}</span>
-    {% endif %}
-</div>
-
+                            <div class="col-2">
+                                {% if sem_info.is_completed %}
+                                {% if item.marks is not None %}
+                                <strong>{{ item.earned_credits }}</strong> / {{ item.subject.credits }}
+                                {% else %}
+                                <span class="text-tba">– / {{ item.subject.credits }}</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-tba">– / {{ item.subject.credits }}</span>
+                                {% endif %}
+                            </div>
 
                             <div class="col-3">
                                 {% if sem_info.is_completed and item.marks is not None %}
