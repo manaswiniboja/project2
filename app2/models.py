@@ -1,5 +1,7 @@
 from datetime import datetime
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class College(models.Model):
     cid = models.AutoField(primary_key=True)
@@ -25,6 +27,7 @@ class Semester(models.Model):
 
 class Student(models.Model):
     sid = models.AutoField(primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     sname = models.CharField(max_length=100)
     sage = models.PositiveIntegerField()
     college = models.ForeignKey(College, on_delete=models.CASCADE)
