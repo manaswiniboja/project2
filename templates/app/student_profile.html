@@ -188,24 +188,26 @@
             </form>
             {% endfor %}
 
-            <!-- Credits & CGPA Summary -->
-            <div class="card p-3 mb-4">
+            <!-- Summary Card -->
+<div class="card p-3 mb-4">
     <h5>Summary</h5>
 
     <p>
         <strong>Total Credits Earned:</strong> {{ total_credits }}
     </p>
 
-    <!-- ✅ RESULT LABEL + VALUE ONLY IF ALL SEMESTERS ARE COMPLETED -->
-    {% if completed_semesters == semester_subjects|length %}
+    <!-- RESULT ONLY IF ALL SEMESTERS COMPLETED -->
+    {% if completed_semesters == semester_subjects|length and completed_semesters > 0 %}
         <p>
             <strong>Result:</strong>
             {% if total_credits >= 35 %}
                 <span class="badge bg-success">PASS</span>
             {% else %}
-                <span class="badge bg-danger">FAIL</span>
+                <span class="badge bg-danger">DETAINED</span>
             {% endif %}
         </p>
+    {% else %}
+        <p><strong>Result:</strong> <span class="text-muted">Pending completion of all semesters</span></p>
     {% endif %}
 
     <p>
@@ -217,7 +219,6 @@
         {% endif %}
     </p>
 </div>
-
 
     <!-- Edit Student Modal -->
     <div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">

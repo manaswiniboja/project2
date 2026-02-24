@@ -49,7 +49,7 @@ def home(request):
             )
             return redirect("home")
 
-    is_faculty = request.session.get('user_role') == 'faculty'
+    is_faculty = "faculty_id" in request.session
     context = {
         "colleges": colleges,
         "departments": departments,
@@ -144,20 +144,22 @@ def student_profile(request, student_id):
 
     cgpa = round(total_points / subjects_with_marks_count, 2) if subjects_with_marks_count else None
 
-    final_result = "PASS" if total_credits >= 35 else "FAIL" if all_completed else None
+    if all_completed:
+      final_result = "PASS" if total_credits >= 35 else "FAIL"
+    else:
+      final_result = None  
 
     return render(request, "app/student_profile.html", {
-        "student": student,
-        "colleges": colleges,
-        "departments": departments,
-        "semester_subjects": semester_subjects,
-        "completed_semesters": completed_semesters,
-        "total_credits": total_credits,
-        "cgpa": cgpa,
-        "final_result": final_result,
-        "all_completed": all_completed
-    })
-
+    "student": student,
+    "colleges": colleges,
+    "departments": departments,
+    "semester_subjects": semester_subjects,
+    "completed_semesters": completed_semesters,
+    "total_credits": total_credits,
+    "cgpa": cgpa,
+    "final_result": final_result,
+    "all_completed": all_completed
+})
 
 # ================= SAVE SEMESTER MARKS =================
 def save_semester_marks(request, student_id, semester_id):
@@ -271,6 +273,11 @@ def export_student_pdf(request, student_id):
         elements.append(table)
 
     cgpa = round(total_points / subjects_with_marks_count, 2) if subjects_with_marks_count else None
+
+    if all_completed:
+     final_result = "PASS" if total_credits >= 35 else "FAIL"
+    else:
+     final_result = None
     elements.append(Spacer(1, 12))
     elements.append(Paragraph(f"<b>Total Credits Earned:</b> {total_credits}", styles["Normal"]))
 
@@ -346,36 +353,44 @@ from app2.models import StudentID, FacultyID
 # ================= LOGIN =================
 def login_view(request):
     if request.method == "POST":
-        role = request.POST.get("role")  # 'student' or 'faculty'
+        role = request.POST.get("role")
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        user_obj = None
+        print("ROLE:", role)
+        print("USERNAME:", username)
+
         if role == "student":
             try:
                 user_obj = StudentID.objects.get(username=username)
+
+                if user_obj.check_password(password):
+                    request.session["student_id"] = user_obj.id
+                    print("LOGIN SUCCESS")
+                    return redirect("home")
+                else:
+                    messages.error(request, "Invalid password")
+
             except StudentID.DoesNotExist:
-                messages.error(request, "Student not found!")
+                messages.error(request, "Student not found")
+
         elif role == "faculty":
             try:
                 user_obj = FacultyID.objects.get(username=username)
-            except FacultyID.DoesNotExist:
-                messages.error(request, "Faculty not found!")
-        else:
-            messages.error(request, "Invalid role selected!")
 
-        if user_obj and user_obj.check_password(password):
-            request.session['user_role'] = role
-            request.session['username'] = username
-            messages.success(request, f"Logged in as {role}")
-            return redirect("home")
+                if user_obj.check_password(password):
+                    request.session["faculty_id"] = user_obj.id
+                    return redirect("home")
+                else:
+                    messages.error(request, "Invalid password")
+
+            except FacultyID.DoesNotExist:
+                messages.error(request, "Faculty not found")
+
         else:
-            if user_obj:
-                messages.error(request, "Incorrect password!")
+            messages.error
 
     return render(request, "app/login.html")
-
-
 # ================= LOGOUT =================
 def logout_view(request):
     auth_logout(request)
@@ -389,17 +404,18 @@ def student_register(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        password2 = request.POST.get("password2")
 
-        if password != password2:
-            messages.error(request, "Passwords do not match!")
-        elif StudentID.objects.filter(username=username).exists():
+        
+        if StudentID.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
-        else:
-            student = StudentID(username=username)
-            student.set_password(password)
-            messages.success(request, "Student account created! You can now login.")
-            return redirect("login")
+            return redirect("student_register")
+
+        student = StudentID(username=username)
+        student.set_password(password)  
+        student.save()
+
+        messages.success(request, "Student account created successfully!")
+        return redirect("login")
 
     return render(request, "app/student_register.html")
 
@@ -409,16 +425,16 @@ def faculty_register(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        password2 = request.POST.get("password2")
 
-        if password != password2:
-            messages.error(request, "Passwords do not match!")
-        elif FacultyID.objects.filter(username=username).exists():
+        if FacultyID.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
-        else:
-            faculty = FacultyID(username=username)
-            faculty.set_password(password)
-            messages.success(request, "Faculty account created! You can now login.")
-            return redirect("login")
+            return redirect("faculty_register")
+
+        faculty = FacultyID(username=username)
+        faculty.set_password(password)
+        faculty.save()
+
+        messages.success(request, "Faculty account created successfully!")
+        return redirect("login")
 
     return render(request, "app/faculty_register.html")

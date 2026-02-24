@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from django.db import models
 
 class College(models.Model):
@@ -31,7 +31,7 @@ class Student(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, blank=True)
     photo = models.ImageField(upload_to='students/', blank=True, null=True)
-    joined_year = models.PositiveIntegerField("Joined Year")
+    joined_year = models.IntegerField(default=date.today().year)
 
     def __str__(self):
         return self.sname
@@ -62,17 +62,25 @@ from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
 class StudentID(models.Model):
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=128)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+    def __str__(self):
+        return self.username
 
 
 class FacultyID(models.Model):
     username = models.CharField(max_length=50, unique=True)
-    password = models.CharField(max_length=128)  # hashed password
+    password = models.CharField(max_length=128)
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
-        self.save()
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
