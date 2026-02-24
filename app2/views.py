@@ -144,23 +144,20 @@ def student_profile(request, student_id):
 
     cgpa = round(total_points / subjects_with_marks_count, 2) if subjects_with_marks_count else None
 
-    if all_completed:
-      final_result = "PASS" if total_credits >= 35 else "FAIL"
-    else:
-      final_result = None  
+    # Final result
+    final_result = "PASS" if all_completed and total_credits >= 35 else ("FAIL" if all_completed else None)
 
     return render(request, "app/student_profile.html", {
-    "student": student,
-    "colleges": colleges,
-    "departments": departments,
-    "semester_subjects": semester_subjects,
-    "completed_semesters": completed_semesters,
-    "total_credits": total_credits,
-    "cgpa": cgpa,
-    "final_result": final_result,
-    "all_completed": all_completed
-})
-
+        "student": student,
+        "colleges": colleges,
+        "departments": departments,
+        "semester_subjects": semester_subjects,
+        "completed_semesters": completed_semesters,
+        "total_credits": total_credits,
+        "cgpa": cgpa,
+        "final_result": final_result,
+        "all_completed": all_completed
+    })
 # ================= SAVE SEMESTER MARKS =================
 def save_semester_marks(request, student_id, semester_id):
     student = get_object_or_404(Student, sid=student_id)
@@ -274,24 +271,21 @@ def export_student_pdf(request, student_id):
 
     cgpa = round(total_points / subjects_with_marks_count, 2) if subjects_with_marks_count else None
 
-    if all_completed:
-     final_result = "PASS" if total_credits >= 35 else "FAIL"
-    else:
-     final_result = None
     elements.append(Spacer(1, 12))
     elements.append(Paragraph(f"<b>Total Credits Earned:</b> {total_credits}", styles["Normal"]))
 
-    if all_completed:
-        final_result = "PASS" if total_credits >= 35 else "FAIL"
+    # Final result
+    final_result = "PASS" if all_completed and total_credits >= 35 else ("FAIL" if all_completed else None)
+    if final_result:
         result_color = "green" if final_result == "PASS" else "red"
         elements.append(Paragraph(f"<b>Final Result:</b> <font color='{result_color}'>{final_result}</font>", styles["Normal"]))
     else:
         elements.append(Paragraph("<b>Final Result:</b> RESULT PENDING", styles["Normal"]))
+
     elements.append(Paragraph(f"<b>CGPA:</b> {cgpa if cgpa else 'N/A'}", styles["Normal"]))
 
     doc.build(elements)
     return response
-
 
 # ================= STUDENT CRUD =================
 def edit_student(request, student_id):
