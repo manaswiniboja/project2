@@ -3,11 +3,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
 
-from django.contrib.auth.models import User, Group
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
-
-
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
@@ -22,13 +17,9 @@ PASS_MARK = 24
 TOTAL_SEMESTERS = 8   # Total semesters in course
 
 
-
 # ================= HOME =================
+from datetime import datetime
 
-def faculty_required(user):
-    return user.groups.filter(name="Faculty").exists()
-@login_required
-@user_passes_test(faculty_required)
 def home(request):
     colleges = College.objects.all()
     departments = Department.objects.all()
@@ -58,13 +49,18 @@ def home(request):
             )
             return redirect("home")
 
-    return render(request, "app/home.html", {
+    is_faculty = request.session.get('user_role') == 'faculty'
+    context = {
         "colleges": colleges,
         "departments": departments,
         "students": students,
         "error": error,
-        "current_year": current_year
-    })
+        "current_year": current_year,
+        "is_faculty": is_faculty,
+        "username": request.session.get('username')
+    }
+    return render(request, "app/home.html", context)
+
 
 # ================= COMPLETED SEMESTERS =================
 def calculate_completed_semesters(joined_year):
@@ -91,13 +87,7 @@ def get_grade_point(marks):
 
 
 # ================= STUDENT PROFILE =================
-@login_required
 def student_profile(request, student_id):
-    if request.user.groups.filter(name="Student").exists():
-        student = get_object_or_404(Student, user=request.user)
-    else:
-        student = get_object_or_404(Student, sid=student_id)
-
     student = get_object_or_404(Student, sid=student_id)
     colleges = College.objects.all()
     departments = Department.objects.all()
@@ -170,8 +160,6 @@ def student_profile(request, student_id):
 
 
 # ================= SAVE SEMESTER MARKS =================
-@login_required
-@user_passes_test(faculty_required)
 def save_semester_marks(request, student_id, semester_id):
     student = get_object_or_404(Student, sid=student_id)
     semester = get_object_or_404(Semester, sem_id=semester_id)
@@ -299,8 +287,6 @@ def export_student_pdf(request, student_id):
 
 
 # ================= STUDENT CRUD =================
-@login_required
-@user_passes_test(faculty_required)
 def edit_student(request, student_id):
     student = get_object_or_404(Student, sid=student_id)
 
@@ -318,16 +304,13 @@ def edit_student(request, student_id):
 
     return redirect("student_profile", student_id=student.sid)
 
-@login_required
-@user_passes_test(faculty_required)
+
 def delete_student(request, student_id):
     get_object_or_404(Student, sid=student_id).delete()
     return redirect("home")
 
 
 # ================= COLLEGE CRUD =================
-@login_required
-@user_passes_test(faculty_required)
 def edit_college(request, college_id):
     college = get_object_or_404(College, cid=college_id)
     if request.method == "POST":
@@ -335,16 +318,13 @@ def edit_college(request, college_id):
         college.save()
     return redirect("home")
 
-@login_required
-@user_passes_test(faculty_required)
+
 def delete_college(request, college_id):
     get_object_or_404(College, cid=college_id).delete()
     return redirect("home")
 
 
 # ================= DEPARTMENT CRUD =================
-@login_required
-@user_passes_test(faculty_required)
 def edit_department(request, dept_id):
     dept = get_object_or_404(Department, did=dept_id)
     if request.method == "POST":
@@ -352,76 +332,93 @@ def edit_department(request, dept_id):
         dept.save()
     return redirect("home")
 
-@login_required
-@user_passes_test(faculty_required)
+
 def delete_department(request, dept_id):
     get_object_or_404(Department, did=dept_id).delete()
     return redirect("home")
 
-def create_groups():
-    Group.objects.get_or_create(name="Faculty")
-    Group.objects.get_or_create(name="Student")
-def faculty_register(request):
-    create_groups()
+# app2/views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
+from app2.models import StudentID, FacultyID
 
+# ================= LOGIN =================
+def login_view(request):
     if request.method == "POST":
+        role = request.POST.get("role")  # 'student' or 'faculty'
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        if User.objects.filter(username=username).exists():
-            return render(request, "app/faculty_register.html", {"error": "Username already exists"})
+        user_obj = None
+        if role == "student":
+            try:
+                user_obj = StudentID.objects.get(username=username)
+            except StudentID.DoesNotExist:
+                messages.error(request, "Student not found!")
+        elif role == "faculty":
+            try:
+                user_obj = FacultyID.objects.get(username=username)
+            except FacultyID.DoesNotExist:
+                messages.error(request, "Faculty not found!")
+        else:
+            messages.error(request, "Invalid role selected!")
 
-        # Create user
-        user = User.objects.create_user(username=username, password=password)
-        faculty_group = Group.objects.get(name="Faculty")
-        user.groups.add(faculty_group)
-
-        return redirect("login")
-
-    return render(request, "app/faculty_register.html")
-
-def student_register(request):
-    create_groups()
-
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
-        if User.objects.filter(username=username).exists():
-            return render(request, "app/student_register.html", {"error": "Username already exists"})
-
-        # Create user
-        user = User.objects.create_user(username=username, password=password)
-        student_group = Group.objects.get(name="Student")
-        user.groups.add(student_group)
-
-        # Create Student object (other fields optional or default)
-        Student.objects.create(user=user, sname=username)  # Only username as name
-
-        return redirect("login")
-
-    return render(request, "app/student_register.html")
-
-def user_login(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
-        user = authenticate(request, username=username, password=password)
-
-        if user:
-            login(request, user)
-
-            if user.groups.filter(name="Faculty").exists():
-                return redirect("home")
-
-            elif user.groups.filter(name="Student").exists():
-                student = Student.objects.get(user=user)
-                return redirect("student_profile", student_id=student.sid)
+        if user_obj and user_obj.check_password(password):
+            request.session['user_role'] = role
+            request.session['username'] = username
+            messages.success(request, f"Logged in as {role}")
+            return redirect("home")
+        else:
+            if user_obj:
+                messages.error(request, "Incorrect password!")
 
     return render(request, "app/login.html")
 
-def user_logout(request):
-    logout(request)
+
+# ================= LOGOUT =================
+def logout_view(request):
+    auth_logout(request)
+    request.session.flush()
+    messages.success(request, "Logged out successfully!")
     return redirect("login")
 
+
+# ================= STUDENT REGISTRATION =================
+def student_register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        password2 = request.POST.get("password2")
+
+        if password != password2:
+            messages.error(request, "Passwords do not match!")
+        elif StudentID.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+        else:
+            student = StudentID(username=username)
+            student.set_password(password)
+            messages.success(request, "Student account created! You can now login.")
+            return redirect("login")
+
+    return render(request, "app/student_register.html")
+
+
+# ================= FACULTY REGISTRATION =================
+def faculty_register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        password2 = request.POST.get("password2")
+
+        if password != password2:
+            messages.error(request, "Passwords do not match!")
+        elif FacultyID.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+        else:
+            faculty = FacultyID(username=username)
+            faculty.set_password(password)
+            messages.success(request, "Faculty account created! You can now login.")
+            return redirect("login")
+
+    return render(request, "app/faculty_register.html")

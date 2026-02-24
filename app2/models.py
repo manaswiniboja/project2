@@ -1,7 +1,5 @@
 from datetime import datetime
 from django.db import models
-from django.contrib.auth.models import User
-
 
 class College(models.Model):
     cid = models.AutoField(primary_key=True)
@@ -27,7 +25,6 @@ class Semester(models.Model):
 
 class Student(models.Model):
     sid = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     sname = models.CharField(max_length=100)
     sage = models.PositiveIntegerField()
     college = models.ForeignKey(College, on_delete=models.CASCADE)
@@ -59,17 +56,36 @@ class Mark(models.Model):
 
     def __str__(self):
         return f"{self.student.sname} - {self.subject.subject_name}"
-
-class FacultyID(models.Model):
-    fid = models.CharField(max_length=10, unique=True)  # Faculty ID
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.fid
+    
+    
+from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 class StudentID(models.Model):
-    sid = models.CharField(max_length=10, unique=True)  # Student ID
-    created_at = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=50, unique=True)
+    password = models.CharField(max_length=128)  
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+        self.save()
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
     def __str__(self):
-        return self.sid
+        return self.username
+
+
+class FacultyID(models.Model):
+    username = models.CharField(max_length=50, unique=True)
+    password = models.CharField(max_length=128)  # hashed password
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+        self.save()
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+    def __str__(self):
+        return self.username

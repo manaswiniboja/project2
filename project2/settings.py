@@ -40,7 +40,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://*.ngrok-free.dev",
     "https://*.ngrok.io",
     "http://*.ngrok.io",
-    "https://crowd-disturbed-bell-car.trycloudflare.com"
 ]
 
 
