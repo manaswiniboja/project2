@@ -16,10 +16,43 @@ from app2.models import (
 PASS_MARK = 24
 TOTAL_SEMESTERS = 8   # Total semesters in course
 
+from functools import wraps
+
+# ================= AUTH DECORATORS =================
+
+def student_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if "student_id" not in request.session:
+            messages.error(request, "You must login as Student.")
+            return redirect("login")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def faculty_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if "faculty_id" not in request.session:
+            messages.error(request, "You must login as Faculty.")
+            return redirect("login")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if "student_id" not in request.session and "faculty_id" not in request.session:
+            messages.error(request, "Please login first.")
+            return redirect("login")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
 
 # ================= HOME =================
 from datetime import datetime
-
+@login_required
 def home(request):
     colleges = College.objects.all()
     departments = Department.objects.all()
@@ -87,8 +120,13 @@ def get_grade_point(marks):
 
 
 # ================= STUDENT PROFILE =================
+@login_required
 def student_profile(request, student_id):
     student = get_object_or_404(Student, sid=student_id)
+    if "student_id" in request.session:
+     if request.session["student_id"] != student_id:
+        messages.error(request, "Unauthorized access")
+        return redirect("home")
     colleges = College.objects.all()
     departments = Department.objects.all()
 
@@ -159,6 +197,7 @@ def student_profile(request, student_id):
         "all_completed": all_completed
     })
 # ================= SAVE SEMESTER MARKS =================
+@faculty_required
 def save_semester_marks(request, student_id, semester_id):
     student = get_object_or_404(Student, sid=student_id)
     semester = get_object_or_404(Semester, sem_id=semester_id)
@@ -189,8 +228,13 @@ def save_semester_marks(request, student_id, semester_id):
 
 
 # ================= PDF EXPORT =================
+@login_required
 def export_student_pdf(request, student_id):
     student = get_object_or_404(Student, sid=student_id)
+    if "student_id" in request.session:
+     if request.session["student_id"] != student_id:
+        messages.error(request, "Unauthorized access")
+        return redirect("home")  
 
     completed_semesters = calculate_completed_semesters(student.joined_year)
     all_completed = completed_semesters >= TOTAL_SEMESTERS
@@ -288,7 +332,10 @@ def export_student_pdf(request, student_id):
     return response
 
 # ================= STUDENT CRUD =================
+@faculty_required
 def edit_student(request, student_id):
+    # Only faculty can edit
+  
     student = get_object_or_404(Student, sid=student_id)
 
     if request.method == "POST":
@@ -302,16 +349,20 @@ def edit_student(request, student_id):
             student.photo = request.FILES.get("student_image")
 
         student.save()
+        messages.success(request, "Student updated successfully!")
 
     return redirect("student_profile", student_id=student.sid)
 
-
+@faculty_required
 def delete_student(request, student_id):
+
+
     get_object_or_404(Student, sid=student_id).delete()
+    messages.success(request, "Student deleted successfully!")
     return redirect("home")
 
-
 # ================= COLLEGE CRUD =================
+@faculty_required
 def edit_college(request, college_id):
     college = get_object_or_404(College, cid=college_id)
     if request.method == "POST":
@@ -320,12 +371,14 @@ def edit_college(request, college_id):
     return redirect("home")
 
 
+@faculty_required
 def delete_college(request, college_id):
     get_object_or_404(College, cid=college_id).delete()
     return redirect("home")
 
 
 # ================= DEPARTMENT CRUD =================
+@faculty_required
 def edit_department(request, dept_id):
     dept = get_object_or_404(Department, did=dept_id)
     if request.method == "POST":
@@ -334,6 +387,7 @@ def edit_department(request, dept_id):
     return redirect("home")
 
 
+@faculty_required
 def delete_department(request, dept_id):
     get_object_or_404(Department, did=dept_id).delete()
     return redirect("home")
@@ -341,7 +395,6 @@ def delete_department(request, dept_id):
 # app2/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import logout as auth_logout
 from app2.models import StudentID, FacultyID
 
 # ================= LOGIN =================
@@ -359,6 +412,7 @@ def login_view(request):
                 user_obj = StudentID.objects.get(username=username)
 
                 if user_obj.check_password(password):
+                    request.session.flush()
                     request.session["student_id"] = user_obj.id
                     print("LOGIN SUCCESS")
                     return redirect("home")
@@ -373,6 +427,7 @@ def login_view(request):
                 user_obj = FacultyID.objects.get(username=username)
 
                 if user_obj.check_password(password):
+                    request.session.flush()
                     request.session["faculty_id"] = user_obj.id
                     return redirect("home")
                 else:
@@ -387,7 +442,6 @@ def login_view(request):
     return render(request, "app/login.html")
 # ================= LOGOUT =================
 def logout_view(request):
-    auth_logout(request)
     request.session.flush()
     messages.success(request, "Logged out successfully!")
     return redirect("login")

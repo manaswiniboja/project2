@@ -69,20 +69,22 @@
 
             <!-- Action Buttons -->
             <div class="d-flex justify-content-between mt-4 action-buttons">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary" id="toggleSubjectsBtn">View Subjects</button>
-                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal">
-                        <i class="bi bi-pencil-square"></i> Edit
-                    </button>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteStudentModal">
-                        <i class="bi bi-trash-fill"></i> Delete
-                    </button>
-                    <a href="{% url 'export_student_pdf' student.sid %}"
-   class="btn btn-success">
-   <i class="bi bi-download"></i> Download PDF
-</a>
+               <div class="d-flex gap-2">
+    <button class="btn btn-primary" id="toggleSubjectsBtn">View Subjects</button>
 
-                </div>
+    {% if request.session.faculty_id %}
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal">
+            <i class="bi bi-pencil-square"></i> Edit
+        </button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteStudentModal">
+            <i class="bi bi-trash-fill"></i> Delete
+        </button>
+    {% endif %}
+
+    <a href="{% url 'export_student_pdf' student.sid %}" class="btn btn-success">
+        <i class="bi bi-download"></i> Download PDF
+    </a>
+</div>
                 <a href="{% url 'home' %}" class="btn btn-secondary">Back to Students</a>
             </div>
         </div>
@@ -118,21 +120,19 @@
                             <div class="col-4">{{ item.subject.subject_name }}</div>
                             <div class="col-1">{{ item.subject.credits }}</div>
                             <div class="col-2">
-    {% if sem_info.is_completed %}
-        <input type="number" name="mark_{{ item.subject.subject_id }}" min="0" max="75"
-            class="form-control" value="{{ item.marks|default:'' }}">
-    {% endif %}
-</div>
-
+                                {% if sem_info.is_completed %}
+                                <input type="number" name="mark_{{ item.subject.subject_id }}" min="0" max="75"
+                                    class="form-control" value="{{ item.marks|default:'' }}">
+                                {% else %}
+                                <span class="text-tba">TBA</span>
+                                {% endif %}
+                            </div>
                             <div class="col-2">
-    {% if sem_info.is_completed and item.marks is not None %}
-        {{ item.marks }}
-        {% with total_marks=total_marks|add:item.marks %}{% endwith %}
-    {% elif not sem_info.is_completed %}
-        <span class="text-tba">TBA</span>
-    {% endif %}
-</div>
-
+                                {% if sem_info.is_completed and item.marks is not None %}
+                                {{ item.marks }}
+                                {% with total_marks=total_marks|add:item.marks %}{% endwith %}
+                                {% endif %}
+                            </div>
                             <div class="col-2">
                                 {% if sem_info.is_completed %}
                                 {% if item.marks is not None %}
@@ -176,11 +176,11 @@
                         {% endif %}
 
                         <!-- Save Marks button -->
-                        {% if sem_info.is_completed %}
-                        <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-success">Save Marks</button>
-                        </div>
-                        {% endif %}
+                      {% if sem_info.is_completed and request.session.faculty_id %}
+<div class="text-end mt-3">
+    <button type="submit" class="btn btn-success">Save Marks</button>
+</div>
+{% endif %}
 
                     
                     </div>
@@ -188,16 +188,16 @@
             </form>
             {% endfor %}
 
-            <!-- Summary Card -->
-<div class="card p-3 mb-4">
+            <!-- Credits & CGPA Summary -->
+            <div class="card p-3 mb-4">
     <h5>Summary</h5>
 
     <p>
         <strong>Total Credits Earned:</strong> {{ total_credits }}
     </p>
 
-    <!-- RESULT ONLY IF ALL SEMESTERS COMPLETED -->
-    {% if completed_semesters == semester_subjects|length and completed_semesters > 0 %}
+    <!-- ✅ RESULT LABEL + VALUE ONLY IF ALL SEMESTERS ARE COMPLETED -->
+    {% if completed_semesters == semester_subjects|length %}
         <p>
             <strong>Result:</strong>
             {% if total_credits >= 35 %}
@@ -206,8 +206,6 @@
                 <span class="badge bg-danger">DETAINED</span>
             {% endif %}
         </p>
-    {% else %}
-        <p><strong>Result:</strong> <span class="text-muted">Pending completion of all semesters</span></p>
     {% endif %}
 
     <p>
@@ -220,6 +218,7 @@
     </p>
 </div>
 
+    {% if request.session.faculty_id %}
     <!-- Edit Student Modal -->
     <div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -285,7 +284,9 @@
             </div>
         </div>
     </div>
+     {% endif %}
 
+    {% if request.session.faculty_id %}
     <!-- Delete Student Modal -->
     <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -304,6 +305,8 @@
             </div>
         </div>
     </div>
+    
+    {% endif %}
 
     <!-- Toggle Subjects Script -->
     <script>
