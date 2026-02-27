@@ -31,6 +31,15 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('register/student/', views.student_register, name='student_register'),
     path('register/faculty/', views.faculty_register, name='faculty_register'),
+
+
+    path('', views.login_view, name='login'),
+
+    path('student/home/', views.student_home, name='student_home'),
+    path('faculty/home/', views.faculty_home, name='faculty_home'),
+
+    path('logout/', views.logout_view, name='logout'),
 ]
+
 
 

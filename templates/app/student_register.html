@@ -36,13 +36,13 @@
         <form method="POST" class="space-y-4" autocomplete="off">
             {% csrf_token %}
 
-            <input type="text" name="username" placeholder="Username" required
+            <input type="text" name="username" placeholder="Username" autocomplete="new-username" required
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-            <input type="password" name="password" placeholder="Password" required
+            <input type="password" name="password" placeholder="Password" autocomplete="new-password" required
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-            <input type="password" name="password2" placeholder="Confirm Password" required
+            <input type="email" name="email" placeholder="Email" autocomplete="new-email" required
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
 
             <button type="submit"

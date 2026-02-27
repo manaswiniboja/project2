@@ -1,3 +1,6 @@
+import random
+import string
+from django.contrib.auth.hashers import make_password, check_password
 from datetime import date, datetime
 from django.db import models
 
@@ -58,11 +61,10 @@ class Mark(models.Model):
         return f"{self.student.sname} - {self.subject.subject_name}"
     
     
-from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
-
 class StudentID(models.Model):
     username = models.CharField(max_length=100, unique=True)
+    userid = models.CharField(max_length=20, unique=True, null=True, blank=True)  
+    email = models.EmailField(unique=True, null=True, blank=True) 
     password = models.CharField(max_length=128)
 
     def set_password(self, raw_password):
@@ -76,7 +78,9 @@ class StudentID(models.Model):
 
 
 class FacultyID(models.Model):
-    username = models.CharField(max_length=50, unique=True)
+    username = models.CharField(max_length=100, unique=True)
+    userid = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     password = models.CharField(max_length=128)
 
     def set_password(self, raw_password):

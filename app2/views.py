@@ -8,6 +8,12 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 
+import random
+import string
+
+from django.core.mail import send_mail
+from django.conf import settings
+
 from app2.models import (
     Student, College, Department,
     Semester, Subject, Mark
@@ -52,7 +58,7 @@ def login_required(view_func):
 
 # ================= HOME =================
 from datetime import datetime
-@login_required
+@faculty_required
 def home(request):
     colleges = College.objects.all()
     departments = Department.objects.all()
@@ -404,9 +410,6 @@ def login_view(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        print("ROLE:", role)
-        print("USERNAME:", username)
-
         if role == "student":
             try:
                 user_obj = StudentID.objects.get(username=username)
@@ -414,8 +417,8 @@ def login_view(request):
                 if user_obj.check_password(password):
                     request.session.flush()
                     request.session["student_id"] = user_obj.id
-                    print("LOGIN SUCCESS")
-                    return redirect("home")
+                    request.session["username"] = user_obj.username
+                    return redirect("student_home")
                 else:
                     messages.error(request, "Invalid password")
 
@@ -429,15 +432,13 @@ def login_view(request):
                 if user_obj.check_password(password):
                     request.session.flush()
                     request.session["faculty_id"] = user_obj.id
-                    return redirect("home")
+                    request.session["username"] = user_obj.username
+                    return redirect("faculty_home")
                 else:
                     messages.error(request, "Invalid password")
 
             except FacultyID.DoesNotExist:
                 messages.error(request, "Faculty not found")
-
-        else:
-            messages.error
 
     return render(request, "app/login.html")
 # ================= LOGOUT =================
@@ -446,23 +447,77 @@ def logout_view(request):
     messages.success(request, "Logged out successfully!")
     return redirect("login")
 
+def generate_userid(prefix):
+    while True:
+        digits = ''.join(random.choices(string.digits, k=2))
+        letters = ''.join(random.choices(string.ascii_uppercase, k=2))
+        special = ''.join(random.choices("!@#$%", k=2))
+        userid = f"{prefix}{digits}{letters}{special}"
+
+        if not StudentID.objects.filter(userid=userid).exists() and \
+           not FacultyID.objects.filter(userid=userid).exists():
+            return userid
+
+
+# ================= USER ID GENERATOR =================
+def generate_userid(prefix):
+    random_number = random.randint(1000, 9999)
+    return f"{prefix}{random_number}"
+
 
 # ================= STUDENT REGISTRATION =================
 def student_register(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        email = request.POST.get("email")
 
-        
+        # Check existing username
         if StudentID.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
             return redirect("student_register")
 
-        student = StudentID(username=username)
-        student.set_password(password)  
+        # Check existing email
+        if StudentID.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists!")
+            return redirect("student_register")
+
+        # Generate UserID
+        userid = generate_userid("ST")
+
+        # Save Student
+        student = StudentID(
+            username=username,
+            email=email,
+            userid=userid
+        )
+        student.set_password(password)
         student.save()
 
-        messages.success(request, "Student account created successfully!")
+        # Send Email
+        try:
+            send_mail(
+                subject="Student Account Created",
+                message=f"""
+Hello {username},
+
+Your Student account has been created successfully.
+
+Your User ID is: {userid}
+
+Thank you.
+""",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print("Email Error:", e)
+
+        messages.success(
+            request,
+            "Account created successfully. Please check your email for UserID."
+        )
         return redirect("login")
 
     return render(request, "app/student_register.html")
@@ -473,16 +528,80 @@ def faculty_register(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        email = request.POST.get("email")
 
+        # Check existing username
         if FacultyID.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
             return redirect("faculty_register")
 
-        faculty = FacultyID(username=username)
+        # Check existing email
+        if FacultyID.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists!")
+            return redirect("faculty_register")
+
+        # Generate UserID
+        userid = generate_userid("FC")
+
+        # Save Faculty
+        faculty = FacultyID(
+            username=username,
+            email=email,
+            userid=userid
+        )
         faculty.set_password(password)
         faculty.save()
 
-        messages.success(request, "Faculty account created successfully!")
+        # Send Email
+        try:
+            send_mail(
+                subject="Faculty Account Created",
+                message=f"""
+Hello {username},
+
+Your Faculty account has been created successfully.
+
+Your User ID is: {userid}
+
+Thank you.
+""",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print("Email Error:", e)
+
+        messages.success(
+            request,
+            "Account created successfully. Please check your email for UserID."
+        )
         return redirect("login")
 
     return render(request, "app/faculty_register.html")
+@student_required
+def student_home(request):
+    student_user_id = request.session.get("student_id")
+
+    # Get matching Student object (IMPORTANT)
+    student = Student.objects.filter(sid=student_user_id).first()
+
+    if not student:
+        messages.error(request, "Student profile not found.")
+        return redirect("login")
+
+    return render(request, "app/student_home.html", {
+        "student": student
+    })
+@faculty_required
+def faculty_home(request):
+    colleges = College.objects.all()
+    departments = Department.objects.all()
+    students = Student.objects.select_related('college', 'department')
+
+    return render(request, "app/faculty_home.html", {
+        "colleges": colleges,
+        "departments": departments,
+        "students": students,
+        "username": request.session.get("username")
+    })
