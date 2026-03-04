@@ -583,25 +583,31 @@ Thank you.
 def student_home(request):
     student_user_id = request.session.get("student_id")
 
-    # Get matching Student object (IMPORTANT)
-    student = Student.objects.filter(sid=student_user_id).first()
+    student = Student.objects.filter(user_id=student_user_id).first()
 
     if not student:
         messages.error(request, "Student profile not found.")
         return redirect("login")
 
+    marks = Mark.objects.filter(student=student).select_related("subject")
+
+    total_credits = sum(m.subject.credits for m in marks)
+    total_points = sum(m.grade_point * m.subject.credits for m in marks)
+
+    cgpa = round(total_points / total_credits, 2) if total_credits > 0 else 0
+
     return render(request, "app/student_home.html", {
-        "student": student
+        "student": student,
+        "marks": marks,
+        "cgpa": cgpa
     })
 @faculty_required
 def faculty_home(request):
-    colleges = College.objects.all()
-    departments = Department.objects.all()
-    students = Student.objects.select_related('college', 'department')
+
+    students = Student.objects.all()
+    subjects = Subject.objects.all()
 
     return render(request, "app/faculty_home.html", {
-        "colleges": colleges,
-        "departments": departments,
         "students": students,
-        "username": request.session.get("username")
+        "subjects": subjects
     })
