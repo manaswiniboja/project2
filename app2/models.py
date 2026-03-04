@@ -28,6 +28,9 @@ class Semester(models.Model):
 
 class Student(models.Model):
     sid = models.AutoField(primary_key=True)
+
+    user = models.OneToOneField("StudentID", on_delete=models.CASCADE, null=True, blank=True)
+
     sname = models.CharField(max_length=100)
     sage = models.PositiveIntegerField()
     college = models.ForeignKey(College, on_delete=models.CASCADE)
@@ -35,9 +38,6 @@ class Student(models.Model):
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, blank=True)
     photo = models.ImageField(upload_to='students/', blank=True, null=True)
     joined_year = models.IntegerField(default=date.today().year)
-
-    def __str__(self):
-        return self.sname
 
 class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
