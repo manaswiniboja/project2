@@ -447,22 +447,6 @@ def logout_view(request):
     messages.success(request, "Logged out successfully!")
     return redirect("login")
 
-def generate_userid(prefix):
-    while True:
-        digits = ''.join(random.choices(string.digits, k=2))
-        letters = ''.join(random.choices(string.ascii_uppercase, k=2))
-        special = ''.join(random.choices("!@#$%", k=2))
-        userid = f"{prefix}{digits}{letters}{special}"
-
-        if not StudentID.objects.filter(userid=userid).exists() and \
-           not FacultyID.objects.filter(userid=userid).exists():
-            return userid
-
-
-# ================= USER ID GENERATOR =================
-def generate_userid(prefix):
-    random_number = random.randint(1000, 9999)
-    return f"{prefix}{random_number}"
 
 
 # ================= STUDENT REGISTRATION =================
@@ -483,7 +467,7 @@ def student_register(request):
             return redirect("student_register")
 
         # Generate UserID
-        userid = generate_userid("ST")
+        userid = generate_userid("student")
 
         # Save Student
         student = StudentID(
@@ -541,7 +525,7 @@ def faculty_register(request):
             return redirect("faculty_register")
 
         # Generate UserID
-        userid = generate_userid("FC")
+        userid = generate_userid("faculty")
 
         # Save Faculty
         faculty = FacultyID(
@@ -611,3 +595,20 @@ def faculty_home(request):
         "students": students,
         "subjects": subjects
     })
+def generate_userid(role):
+    while True:
+        digits = ''.join(random.choices(string.digits, k=2))
+        letters = ''.join(random.choices(string.ascii_uppercase, k=2))
+        special = ''.join(random.choices("!@#$%^&*", k=2))
+
+        if role == "student":
+            prefix = "S1"
+        else:
+            prefix = "F1"
+
+        userid = f"{prefix}{digits}{letters}{special}"
+
+        # Check uniqueness in both tables
+        if not StudentID.objects.filter(userid=userid).exists() and \
+           not FacultyID.objects.filter(userid=userid).exists():
+            return userid
